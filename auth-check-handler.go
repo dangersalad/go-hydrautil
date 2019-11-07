@@ -74,7 +74,7 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 			return
 		}
 
-		debugf("got user info: %#v\n", userInfo)
+		debugf("got user info: %#v\n", userInfo.GetPayload())
 
 		next.ServeHTTP(w, r)
 	})
