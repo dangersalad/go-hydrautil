@@ -14,7 +14,15 @@ type debugLogger interface {
 var lg logger
 var lgd debugLogger
 
-// SetLogger sets a logger on the package that will print messages
+// SetLogger sets a logger on the package that will print messages.
+//
+// The logger must at least implement methods with the same signatures
+// as the Println and Printf methods of the log package
+// (https://golang.org/pkg/log/).
+//
+// Additionally if the logger implements two methods called Debugf and
+// Debugln with corresponding signatures to the Print* methods debug
+// messages will also be logged
 func SetLogger(l logger) {
 	if dl, ok := l.(debugLogger); ok {
 		lgd = dl
