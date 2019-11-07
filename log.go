@@ -2,12 +2,12 @@ package hydrautil
 
 type logger interface {
 	Printf(string, ...interface{})
-	PrintLn(...interface{})
+	Println(...interface{})
 }
 
 type debugLogger interface {
 	logger
-	DebugLn(...interface{})
+	Debugln(...interface{})
 	Debugf(string, ...interface{})
 }
 
