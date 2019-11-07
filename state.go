@@ -6,23 +6,20 @@ import (
 	"net/http"
 )
 
-var stateHeaders = []string{
-	"x-forwarded-for",
-	"user-agent",
-}
-
-func makeState(r *http.Request) (string, error) {
-	hashData := r.UserAgent()
-	for _, header := range stateHeaders {
-		val := r.Header.Get(header)
-		if val == "" {
-			return "", fmt.Errorf("missing %s header", header)
-		}
-		hashData += val
+func makeState(r *http.Request) string {
+	forwardedFor := r.Header.Get("x-forwarded-for")
+	if forwardedFor == "" {
+		debug("no value for x-forwarded-for, checking x-real-ip")
+		forwardedFor = r.Header.Get("x-real-ip")
 	}
+	if forwardedFor == "" {
+		debug("no value for x-real-ip, using http.Request.RemoteAddr")
+		forwardedFor = r.RemoteAddr
+	}
+	hashData := forwardedFor + r.UserAgent()
 	state := makeHash(hashData)
-	debugf("state from %s = %s", hashData, state)
-	return state, nil
+	debugf("state from %s = %s\n", hashData, state)
+	return state
 }
 
 func makeHash(data string) string {
