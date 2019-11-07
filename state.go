@@ -7,7 +7,9 @@ import (
 )
 
 func makeState(r *http.Request) string {
-	return makeHash(r.RemoteAddr + r.UserAgent())
+	state := makeHash(r.RemoteAddr + r.UserAgent())
+	debugf("state from %s and %s = %s", r.RemoteAddr, r.UserAgent(), state)
+	return state
 }
 
 func makeHash(data string) string {
