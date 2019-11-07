@@ -11,6 +11,7 @@ import (
 func AuthHandler(oauthConf *oauth2.Config) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authURL := oauthConf.AuthCodeURL(makeState(r), oauth2.AccessTypeOnline)
+		debugf("redirecting to %s\n", authURL)
 		w.Header().Add("location", authURL)
 		w.WriteHeader(http.StatusFound)
 	})

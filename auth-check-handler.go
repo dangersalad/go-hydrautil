@@ -73,6 +73,9 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 			w.Write([]byte("userInfo is nil"))
 			return
 		}
+
+		debugf("got user info: %#v\n", userInfo)
+
 		next.ServeHTTP(w, r)
 	})
 }

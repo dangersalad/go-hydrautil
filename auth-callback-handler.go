@@ -61,8 +61,11 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 
 		matches := originParse.FindStringSubmatch(origin)
 		if len(matches) == 3 {
+			debug("making secure cookie")
 			secure = matches[1] == "https"
 		}
+
+		debugf("assigning token to cookie %s: %#v\n", clientConf.CookieName, token)
 
 		http.SetCookie(w, &http.Cookie{
 			Name:     clientConf.CookieName,
