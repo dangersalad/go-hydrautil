@@ -6,17 +6,14 @@ import (
 	"net/http"
 )
 
-var stateHeaders = []string{
-	"x-forwarded-for",
-	"user-agent",
-}
-
 func makeState(r *http.Request) string {
 	forwardedFor := r.Header.Get("x-forwarded-for")
 	if forwardedFor == "" {
+		debug("no value for x-forwarded-for, checking x-real-ip")
 		forwardedFor = r.Header.Get("x-real-ip")
 	}
 	if forwardedFor == "" {
+		debug("no value for x-real-ip, using http.Request.RemoteAddr")
 		forwardedFor = r.RemoteAddr
 	}
 	hashData := forwardedFor + r.UserAgent()
