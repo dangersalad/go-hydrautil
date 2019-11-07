@@ -34,7 +34,13 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			w.Write([]byte("state required"))
 			return
 		}
-		if state != makeState(r) {
+		expectedState, err := makeState(r)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte(err.Error()))
+			return
+		}
+		if state != expectedState {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("state mismatch"))
 			return
