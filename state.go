@@ -11,18 +11,18 @@ var stateHeaders = []string{
 	"user-agent",
 }
 
-func makeState(r *http.Request) (string, error) {
-	hashData := r.UserAgent()
-	for _, header := range stateHeaders {
-		val := r.Header.Get(header)
-		if val == "" {
-			return "", fmt.Errorf("missing %s header", header)
-		}
-		hashData += val
+func makeState(r *http.Request) string {
+	forwardedFor := r.Header.Get("x-forwarded-for")
+	if forwardedFor == "" {
+		forwardedFor = r.Header.Get("x-real-ip")
 	}
+	if forwardedFor == "" {
+		forwardedFor = r.RemoteAddr
+	}
+	hashData := forwardedFor + r.UserAgent()
 	state := makeHash(hashData)
 	debugf("state from %s = %s", hashData, state)
-	return state, nil
+	return state
 }
 
 func makeHash(data string) string {
