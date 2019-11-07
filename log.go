@@ -26,7 +26,7 @@ func debug(a ...interface{}) {
 	if lgd == nil {
 		return
 	}
-	lgd.DebugLn(a...)
+	lgd.Debugln(a...)
 }
 
 func debugf(f string, a ...interface{}) {
@@ -47,5 +47,5 @@ func log(a ...interface{}) {
 	if lg == nil {
 		return
 	}
-	lg.PrintLn(a...)
+	lg.Println(a...)
 }
