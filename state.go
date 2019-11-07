@@ -18,7 +18,7 @@ func makeState(r *http.Request) string {
 	}
 	hashData := forwardedFor + r.UserAgent()
 	state := makeHash(hashData)
-	debugf("state from %s = %s", hashData, state)
+	debugf("state from %s = %s\n", hashData, state)
 	return state
 }
 
