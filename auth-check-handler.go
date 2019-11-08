@@ -60,7 +60,8 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 				} else {
 					err = fmt.Errorf("[%d] %#v", hydraErr.Code, hydraErr.Response)
 				}
-				w.WriteHeader(hydraErr.Code)
+				// w.WriteHeader(hydraErr.Code)
+				w.WriteHeader(http.StatusInternalServerError)
 			}
 
 			w.Write([]byte(err.Error()))
