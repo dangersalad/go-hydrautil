@@ -57,12 +57,7 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 
 			case *hydraRuntime.APIError:
 				if runtimeResp, ok := hydraErr.Response.(hydraRuntime.ClientResponse); ok {
-					respData, readErr := ioutil.ReadAll(runtimeResp.Body())
-					if readErr != nil {
-						err = fmt.Errorf("[%d] unknown error trying %s: error reading body: %w", hydraErr.Code, hydraErr.OperationName, readErr)
-					} else {
-						err = fmt.Errorf("[%d] unknown error trying %s: %s", hydraErr.Code, hydraErr.OperationName, respData)
-					}
+					err = fmt.Errorf("[%d] unknown error trying %s: %s", hydraErr.Code, hydraErr.OperationName, runtimeResp.Message)
 				} else {
 					err = fmt.Errorf("[%d] unknown error trying %s: %#v", hydraErr.Code, hydraErr.OperationName, hydraErr.Response)
 				}
