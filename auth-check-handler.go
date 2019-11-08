@@ -56,9 +56,9 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 
 			case *hydraRuntime.APIError:
 				if runtimeResp, ok := hydraErr.Response.(hydraRuntime.ClientResponse); ok {
-					err = fmt.Errorf("[%d] %s", hydraErr.Code, runtimeResp.Message())
+					err = fmt.Errorf("unknown error getting userinfo: [%d] %s", hydraErr.Code, runtimeResp.Message())
 				} else {
-					err = fmt.Errorf("[%d] %#v", hydraErr.Code, hydraErr.Response)
+					err = fmt.Errorf("unknown error getting userinfo: [%d] %#v", hydraErr.Code, hydraErr.Response)
 				}
 				// w.WriteHeader(hydraErr.Code)
 				w.WriteHeader(http.StatusInternalServerError)
