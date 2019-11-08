@@ -2,7 +2,6 @@ package hydrautil
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	hydraRuntime "github.com/go-openapi/runtime"
