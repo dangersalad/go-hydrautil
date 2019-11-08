@@ -42,15 +42,19 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 
 		userInfo, err := conf.Hydra.Public.Userinfo(userParams, hydraRuntime.ClientAuthInfoWriterFunc(userAuthFunc))
 		if err != nil {
+
 			switch hydraErr := err.(type) {
+
 			case *hydraPublic.UserinfoUnauthorized:
 				errData := hydraErr.GetPayload()
 				err = fmt.Errorf("[%d] %s - %s (%s)", errData.Code, *errData.Name, errData.Description, errData.Debug)
 				w.WriteHeader(int(errData.Code))
+
 			case *hydraPublic.UserinfoInternalServerError:
 				errData := hydraErr.GetPayload()
 				err = fmt.Errorf("[%d] %s - %s (%s)", errData.Code, *errData.Name, errData.Description, errData.Debug)
 				w.WriteHeader(int(errData.Code))
+
 			case *hydraRuntime.APIError:
 				if runtimeResp, ok := hydraErr.Response.(hydraRuntime.ClientResponse); ok {
 					respData, readErr := ioutil.ReadAll(runtimeResp.Body())
@@ -62,8 +66,13 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 				} else {
 					err = fmt.Errorf("[%d] unknown error trying %s: %#v", hydraErr.Code, hydraErr.OperationName, hydraErr.Response)
 				}
-				w.WriteHeader(hydraErr.Code)
+				if hydraErr.Code == http.StatusNotFound {
+					w.WriteHeader(http.StatusUnauthorized)
+				} else {
+					w.WriteHeader(hydraErr.Code)
+				}
 			}
+
 			w.Write([]byte(err.Error()))
 			return
 		}
