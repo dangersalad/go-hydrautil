@@ -61,11 +61,7 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 				} else {
 					err = fmt.Errorf("[%d] unknown error trying %s: %#v", hydraErr.Code, hydraErr.OperationName, hydraErr.Response)
 				}
-				if hydraErr.Code == http.StatusNotFound {
-					w.WriteHeader(http.StatusUnauthorized)
-				} else {
-					w.WriteHeader(hydraErr.Code)
-				}
+				w.WriteHeader(hydraErr.Code)
 			}
 
 			w.Write([]byte(err.Error()))
