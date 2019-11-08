@@ -12,6 +12,9 @@ var originParse = regexp.MustCompile(`^(https?)://([^/]+).*$`)
 // AuthCallbackHandler returns an http.Handler that takes the params
 // provided by the oauth server and exchanges them for an access token
 func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http.Handler {
+
+	getState := getStateFunc(clientConf)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		// if no code, return error
@@ -34,7 +37,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			w.Write([]byte("state required"))
 			return
 		}
-		if state != makeState(r) {
+		if state != getState(r) {
 			w.WriteHeader(http.StatusUnauthorized)
 			w.Write([]byte("state mismatch"))
 			return
