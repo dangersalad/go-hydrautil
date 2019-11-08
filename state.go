@@ -6,7 +6,18 @@ import (
 	"net/http"
 )
 
-func makeState(r *http.Request) string {
+// GetStateFunc is a function that takes in a request and generates
+// state for the oauth exchange
+type GetStateFunc func(r *http.Request) string
+
+func getStateFunc(conf ClientConfig) GetStateFunc {
+	if conf.GetState == nil {
+		return defaultGetState
+	}
+	return conf.GetState
+}
+
+func defaultGetState(r *http.Request) string {
 	forwardedFor := r.Header.Get("x-forwarded-for")
 	if forwardedFor == "" {
 		debug("no value for x-forwarded-for, checking x-real-ip")

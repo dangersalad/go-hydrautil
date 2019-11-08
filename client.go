@@ -10,4 +10,5 @@ type ClientConfig struct {
 	Bypasses            []*Bypass
 	MissingCookieStatus int
 	Hydra               *hydra.OryHydra
+	GetState            GetStateFunc
 }

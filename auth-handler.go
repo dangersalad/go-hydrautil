@@ -8,9 +8,11 @@ import (
 
 // AuthHandler returns an http.Handler that redirects the request to
 // the configured OAuth server
-func AuthHandler(oauthConf *oauth2.Config) http.Handler {
+func AuthHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http.Handler {
+	getState := getStateFunc(clientConf)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authURL := oauthConf.AuthCodeURL(makeState(r), oauth2.AccessTypeOnline)
+		authURL := oauthConf.AuthCodeURL(getState(r), oauth2.AccessTypeOnline)
 		debugf("redirecting to %s\n", authURL)
 		w.Header().Add("location", authURL)
 		w.WriteHeader(http.StatusFound)
