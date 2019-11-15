@@ -2,12 +2,10 @@ package hydrautil
 
 import (
 	"net/http"
-	"regexp"
+	"net/url"
 
 	"golang.org/x/oauth2"
 )
-
-var originParse = regexp.MustCompile(`^(https?)://([^/]+).*$`)
 
 // AuthCallbackHandler returns an http.Handler that takes the params
 // provided by the oauth server and exchanges them for an access token
@@ -16,6 +14,13 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 	getState := getStateFunc(clientConf)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		referrer, err := url.Parse(r.Header.Get("referrer"))
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write([]byte("invalid referror"))
+			return
+		}
+
 		code := r.URL.Query().Get("code")
 		// if no code, return error
 		if code == "" {
@@ -59,14 +64,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			return
 		}
 
-		origin := r.Header.Get("origin")
-		var secure bool
-
-		matches := originParse.FindStringSubmatch(origin)
-		if len(matches) == 3 {
-			debug("making secure cookie")
-			secure = matches[1] == "https"
-		}
+		secure := referrer.Scheme == "https"
 
 		debugf("assigning token to cookie %s: %#v\n", clientConf.CookieName, token)
 
@@ -75,7 +73,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			Value:    token.AccessToken,
 			HttpOnly: true,
 			Secure:   secure,
-			Domain:   r.Host,
+			Domain:   referrer.Host,
 			Path:     "/",
 		})
 
