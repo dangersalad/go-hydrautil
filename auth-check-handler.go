@@ -34,7 +34,7 @@ func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
 
 // CheckAuthHandler returns an http.Handler that will check the
 // cookies for the access token and then verify it
-func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
+func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 	if conf.MissingCookieStatus == 0 {
 		conf.MissingCookieStatus = http.StatusUnauthorized
 	}
@@ -87,11 +87,13 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 				w.WriteHeader(http.StatusInternalServerError)
 			}
 
+			debug("got error getting userinfo: %s", err)
 			w.Write([]byte(err.Error()))
 			return
 		}
 
 		if userInfo == nil || userInfo.GetPayload() == nil {
+			debug("userinfo or it's payload is nil")
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("userInfo is nil"))
 			return
