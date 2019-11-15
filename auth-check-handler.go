@@ -26,8 +26,8 @@ var ErrNoUserInfo = fmt.Errorf("missing user info")
 // UserInfoFromContext returns the userinfo on the context
 func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
 	val := ctx.Value(ContextKeyUserInfo)
-	if ui, ok := val.(UserInfo); ok {
-		return ui, nil
+	if ui, ok := val.(*UserInfo); ok {
+		return *ui, nil
 	}
 	return UserInfo{}, ErrNoUserInfo
 }
