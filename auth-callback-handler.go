@@ -66,14 +66,21 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 
 		secure := referrer.Scheme == "https"
 
-		debugf("assigning token to cookie %s: %#v\n", clientConf.CookieName, token)
+		cookieDomain := r.Host
+		if r.Header.Get("x-cookie-domain") != "" {
+			cookieDomain = r.Header.Get("x-cookie-domain")
+		} else if r.Header.Get("host") != "" {
+			cookieDomain = r.Header.Get("host")
+		}
+
+		debugf("assigning token to cookie %s for domain %s: %#v\n", clientConf.CookieName, cookieDomain, token)
 
 		http.SetCookie(w, &http.Cookie{
 			Name:     clientConf.CookieName,
 			Value:    token.AccessToken,
 			HttpOnly: true,
 			Secure:   secure,
-			Domain:   r.Host,
+			Domain:   cookieDomain,
 			Path:     "/",
 		})
 
