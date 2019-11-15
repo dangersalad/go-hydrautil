@@ -73,7 +73,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			Value:    token.AccessToken,
 			HttpOnly: true,
 			Secure:   secure,
-			Domain:   referrer.Host,
+			Domain:   r.Host,
 			Path:     "/",
 		})
 
