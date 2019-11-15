@@ -26,8 +26,8 @@ var ErrNoUserInfo = fmt.Errorf("missing user info")
 // UserInfoFromContext returns the userinfo on the context
 func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
 	val := ctx.Value(ContextKeyUserInfo)
-	if ui, ok := val.(*UserInfo); ok {
-		return *ui, nil
+	if ui, ok := val.(UserInfo); ok {
+		return ui, nil
 	}
 	return UserInfo{}, ErrNoUserInfo
 }
@@ -99,7 +99,8 @@ func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, userInfo.GetPayload())
+		data := userInfo.GetPayload()
+		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, UserInfo(*data))
 
 		debugf("got user info: %#v\n", userInfo.GetPayload())
 
