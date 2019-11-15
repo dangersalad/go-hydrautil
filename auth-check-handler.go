@@ -1,13 +1,36 @@
 package hydrautil
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
 	hydraRuntime "github.com/go-openapi/runtime"
 	"github.com/go-openapi/strfmt"
 	hydraPublic "github.com/ory/hydra/sdk/go/hydra/client/public"
+	"github.com/ory/hydra/sdk/go/hydra/models"
 )
+
+type contextKey string
+
+// ContextKeyUserInfo is the context key for the user info
+var ContextKeyUserInfo contextKey = "userinfo"
+
+// UserInfo is the user info
+type UserInfo models.SwaggeruserinfoResponsePayload
+
+// ErrNoUserInfo is the error returned by UserInfoFromContext when the
+// user info is missing from the context
+var ErrNoUserInfo = fmt.Errorf("missing user info")
+
+// UserInfoFromContext returns the userinfo on the context
+func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
+	val := ctx.Value(ContextKeyUserInfo)
+	if ui, ok := val.(UserInfo); ok {
+		return ui, nil
+	}
+	return UserInfo{}, ErrNoUserInfo
+}
 
 // CheckAuthHandler returns an http.Handler that will check the
 // cookies for the access token and then verify it
@@ -68,14 +91,16 @@ func CheckAuthHandler(next http.Handler, conf ClientConfig) http.Handler {
 			return
 		}
 
-		if userInfo == nil {
+		if userInfo == nil || userInfo.GetPayload() == nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("userInfo is nil"))
 			return
 		}
 
+		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, userInfo.GetPayload())
+
 		debugf("got user info: %#v\n", userInfo.GetPayload())
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
