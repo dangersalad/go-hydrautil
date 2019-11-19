@@ -12,6 +12,7 @@ import (
 func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http.Handler {
 
 	getState := getStateFunc(clientConf)
+	validateState := validateStateFunc(clientConf)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
@@ -32,7 +33,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			sendErrorMessage(w, http.StatusBadRequest, "state required")
 			return
 		}
-		if state != getState(r) {
+		if validateState(state, getState(r)) {
 			sendErrorMessage(w, http.StatusUnauthorized, "state mismatch")
 			return
 		}
