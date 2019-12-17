@@ -2,82 +2,84 @@ package hydrautil
 
 import (
 	"net/http"
-	"regexp"
+	"net/url"
 
 	"golang.org/x/oauth2"
 )
-
-var originParse = regexp.MustCompile(`^(https?)://([^/]+).*$`)
 
 // AuthCallbackHandler returns an http.Handler that takes the params
 // provided by the oauth server and exchanges them for an access token
 func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http.Handler {
 
 	getState := getStateFunc(clientConf)
+	validateState := validateStateFunc(clientConf)
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		code := r.URL.Query().Get("code")
 		// if no code, return error
 		if code == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("code required"))
+			sendErrorMessage(w, http.StatusBadRequest, "code required")
 			return
 		}
 		scope := r.URL.Query().Get("scope")
 		// if no challenge, return error
 		if scope == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("scope required"))
+			sendErrorMessage(w, http.StatusBadRequest, "scope required")
 			return
 		}
 		state := r.URL.Query().Get("state")
 		// if no challenge, return error
 		if scope == "" {
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte("state required"))
+			sendErrorMessage(w, http.StatusBadRequest, "state required")
 			return
 		}
-		if state != getState(r) {
-			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("state mismatch"))
+		if validateState(state, getState(r)) {
+			sendErrorMessage(w, http.StatusUnauthorized, "state mismatch")
 			return
 		}
 		token, err := oauthConf.Exchange(r.Context(), code)
 		if err != nil {
 			if oauthErr, ok := err.(*oauth2.RetrieveError); ok {
-				w.WriteHeader(http.StatusUnauthorized)
-				w.Write(oauthErr.Body)
+				sendErrorMessage(w, http.StatusUnauthorized, string(oauthErr.Body))
 				return
 			}
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
+			sendErrorMessage(w, http.StatusInternalServerError, err.Error())
 			return
 		}
 		if token == nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("token is nil"))
+			sendErrorMessage(w, http.StatusInternalServerError, "token is nil")
 			return
 		}
 
-		origin := r.Header.Get("origin")
-		var secure bool
+		if clientConf.CookieName != "" {
+			referrer, err := url.Parse(r.Header.Get("referrer"))
+			if err != nil {
+				sendErrorMessage(w, http.StatusBadRequest, "invalid referror")
+				return
+			}
 
-		matches := originParse.FindStringSubmatch(origin)
-		if len(matches) == 3 {
-			debug("making secure cookie")
-			secure = matches[1] == "https"
+			secure := referrer.Scheme == "https"
+
+			cookieDomain := r.Host
+			if r.Header.Get("x-cookie-domain") != "" {
+				cookieDomain = r.Header.Get("x-cookie-domain")
+			} else if r.Header.Get("host") != "" {
+				cookieDomain = r.Header.Get("host")
+			}
+
+			debugf("assigning token to cookie %s for domain %s: %#v\n", clientConf.CookieName, cookieDomain, token)
+
+			http.SetCookie(w, &http.Cookie{
+				Name:     clientConf.CookieName,
+				Value:    token.AccessToken,
+				HttpOnly: true,
+				Secure:   secure,
+				Domain:   cookieDomain,
+				Path:     "/",
+			})
+			return
 		}
 
-		debugf("assigning token to cookie %s: %#v\n", clientConf.CookieName, token)
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     clientConf.CookieName,
-			Value:    token.AccessToken,
-			HttpOnly: true,
-			Secure:   secure,
-			Domain:   r.Host,
-			Path:     "/",
-		})
-
+		sendJSON(w, token)
 	})
 }
