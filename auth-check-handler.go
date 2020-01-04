@@ -47,18 +47,28 @@ func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 			}
 		}
 
-		cookie, err := r.Cookie(conf.CookieName)
-		if err != nil {
+		var token string
+		if conf.CookieName != "" {
+			cookie, err := r.Cookie(conf.CookieName)
+			if err != nil {
+				w.WriteHeader(conf.MissingCookieStatus)
+				return
+			}
+			token = cookie.Value
+		} else if conf.HeaderName != "" {
+			token = r.Header.Get(conf.HeaderName)
+		} else {
+			sendErrorMessage(w, 500, "no cookie or header name configured")
+		}
+
+		if token == "" {
 			w.WriteHeader(conf.MissingCookieStatus)
 			return
 		}
 
 		userParams := hydraPublic.NewUserinfoParamsWithContext(r.Context())
 		userAuthFunc := func(hydraReq hydraRuntime.ClientRequest, _ strfmt.Registry) error {
-			if cookie.Value == "" {
-				return fmt.Errorf("no value in cookie")
-			}
-			hydraReq.SetHeaderParam("authorization", fmt.Sprintf(`Bearer %s`, cookie.Value))
+			hydraReq.SetHeaderParam("authorization", fmt.Sprintf(`Bearer %s`, token))
 			return nil
 		}
 
