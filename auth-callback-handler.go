@@ -79,7 +79,7 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 			})
 			return
 		} else if clientConf.HeaderName != "" {
-			w.Header().Set(clientConf.HeaderName, token)
+			w.Header().Set(clientConf.HeaderName, token.AccessToken)
 			return
 		}
 
