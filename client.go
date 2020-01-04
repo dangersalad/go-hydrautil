@@ -8,9 +8,16 @@ import (
 type ClientConfig struct {
 
 	// CookieName to be used for storing the access token in the auth
-	// callback flow, if missing a JSON response will be generated
-	// instead, intended to be consumed by the application
+	// callback flow, if missing this and HeaderName a JSON response
+	// will be generated instead, intended to be consumed by the
+	// application. This setting will supercede HeaderName
 	CookieName string
+
+	// HeaderName to be used for storing the access token in the auth
+	// callback flow, if missing this and CookieName a JSON response
+	// will be generated instead, intended to be consumed by the
+	// application. CookieName will supercede this setting
+	HeaderName string
 
 	// This is the status to be returned from the auth check handler
 	// if the cookie is missing, defaults to http.StatusUnauthorized

@@ -78,6 +78,9 @@ func AuthCallbackHandler(oauthConf *oauth2.Config, clientConf ClientConfig) http
 				Path:     "/",
 			})
 			return
+		} else if clientConf.HeaderName != "" {
+			w.Header().Set(clientConf.HeaderName, token)
+			return
 		}
 
 		sendJSON(w, token)
