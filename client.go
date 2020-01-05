@@ -1,8 +1,6 @@
+// Package hydrautil provides convienience functions and http handlers
+// for using with ORY Hydra
 package hydrautil
-
-import (
-	hydra "github.com/ory/hydra/sdk/go/hydra/client"
-)
 
 // ClientConfig configures the client connection
 type ClientConfig struct {
@@ -26,9 +24,6 @@ type ClientConfig struct {
 
 	// Bypasses will allow the auth check handler to bypass certain urls
 	Bypasses []*Bypass
-
-	// Hydra is the hydra client to use for the oauth flows
-	Hydra *hydra.OryHydra
 
 	// GetState can be defined to override the state generation. If it
 	// is not specified, StateKey is required.
