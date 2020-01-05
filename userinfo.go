@@ -94,7 +94,7 @@ func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
 	if ui, ok := val.(UserInfo); ok {
 		return ui, nil
 	}
-	return userInfo{}, ErrNoUserInfo
+	return nil, ErrNoUserInfo
 }
 
 func getUserInfo(conf ClientConfig, token string) (UserInfo, error) {

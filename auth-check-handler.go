@@ -58,6 +58,7 @@ func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 		}
 
 		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, ui)
+		ctx = context.WithValue(r.Context(), ContextKeyUserToken, token)
 
 		debugf("got user info: %#v\n", ui)
 
