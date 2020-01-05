@@ -97,9 +97,9 @@ func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
 	return userInfo{}, ErrNoUserInfo
 }
 
-func getUserInfo(token string) (UserInfo, error) {
+func getUserInfo(conf ClientConfig, token string) (UserInfo, error) {
 
-	req, err := http.NewRequest(http.MethodGet, "", nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/userinfo", conf.OAuthURL), nil)
 	if err != nil {
 		return nil, fmt.Errorf("making request: %w", err)
 	}

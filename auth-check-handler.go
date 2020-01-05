@@ -40,7 +40,7 @@ func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 			return
 		}
 
-		ui, err := getUserInfo(token)
+		ui, err := getUserInfo(conf, token)
 		if err != nil {
 			uiErr := userInfoError{}
 

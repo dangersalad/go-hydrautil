@@ -36,4 +36,8 @@ type ClientConfig struct {
 	// StateKey is the key used to hash the state data in the default
 	// state generation function. Required unless GetState is defined.
 	StateKey string
+
+	// OAuthURL is the URL to call the hydra server's /userinfo
+	// endpoint. This should include the scheme and any path prefix.
+	OAuthURL string
 }
