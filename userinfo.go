@@ -86,7 +86,7 @@ var ErrNoUserInfo = fmt.Errorf("missing user info")
 
 // ErrUserInfoUnauthorized is the error returned by getUserInfo when the
 // call to the hydra userinfo endpoint returns a 401
-var ErrUserInfoUnauthorized = userInfoError{http.StatusUnauthorized, `{"error": "unauthorized"}`}
+var ErrUserInfoUnauthorized = userInfoError{http.StatusUnauthorized, []byte(`{"error": "unauthorized"}`)}
 
 // UserInfoFromContext returns the userinfo on the context
 func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
