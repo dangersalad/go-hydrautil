@@ -2,35 +2,9 @@ package hydrautil
 
 import (
 	"context"
-	"fmt"
+	"errors"
 	"net/http"
-
-	hydraRuntime "github.com/go-openapi/runtime"
-	"github.com/go-openapi/strfmt"
-	hydraPublic "github.com/ory/hydra/sdk/go/hydra/client/public"
-	"github.com/ory/hydra/sdk/go/hydra/models"
 )
-
-type contextKey string
-
-// ContextKeyUserInfo is the context key for the user info
-var ContextKeyUserInfo contextKey = "userinfo"
-
-// UserInfo is the user info
-type UserInfo models.SwaggeruserinfoResponsePayload
-
-// ErrNoUserInfo is the error returned by UserInfoFromContext when the
-// user info is missing from the context
-var ErrNoUserInfo = fmt.Errorf("missing user info")
-
-// UserInfoFromContext returns the userinfo on the context
-func UserInfoFromContext(ctx context.Context) (UserInfo, error) {
-	val := ctx.Value(ContextKeyUserInfo)
-	if ui, ok := val.(UserInfo); ok {
-		return ui, nil
-	}
-	return UserInfo{}, ErrNoUserInfo
-}
 
 // CheckAuthHandler returns an http.Handler that will check the
 // cookies for the access token and then verify it
@@ -66,53 +40,26 @@ func CheckAuthHandler(conf ClientConfig, next http.Handler) http.Handler {
 			return
 		}
 
-		userParams := hydraPublic.NewUserinfoParamsWithContext(r.Context())
-		userAuthFunc := func(hydraReq hydraRuntime.ClientRequest, _ strfmt.Registry) error {
-			hydraReq.SetHeaderParam("authorization", fmt.Sprintf(`Bearer %s`, token))
-			return nil
-		}
-
-		userInfo, err := conf.Hydra.Public.Userinfo(userParams, hydraRuntime.ClientAuthInfoWriterFunc(userAuthFunc))
+		ui, err := getUserInfo(token)
 		if err != nil {
+			uiErr := userInfoError{}
 
-			switch hydraErr := err.(type) {
-
-			case *hydraPublic.UserinfoUnauthorized:
-				errData := hydraErr.GetPayload()
-				err = fmt.Errorf("[%d] %s - %s (%s)", errData.Code, *errData.Name, errData.Description, errData.Debug)
-				w.WriteHeader(int(errData.Code))
-
-			case *hydraPublic.UserinfoInternalServerError:
-				errData := hydraErr.GetPayload()
-				err = fmt.Errorf("[%d] %s - %s (%s)", errData.Code, *errData.Name, errData.Description, errData.Debug)
-				w.WriteHeader(int(errData.Code))
-
-			case *hydraRuntime.APIError:
-				if runtimeResp, ok := hydraErr.Response.(hydraRuntime.ClientResponse); ok {
-					err = fmt.Errorf("unknown error getting userinfo: [%d] %s", hydraErr.Code, runtimeResp.Message())
-				} else {
-					err = fmt.Errorf("unknown error getting userinfo: [%d] %#v", hydraErr.Code, hydraErr.Response)
-				}
-				// w.WriteHeader(hydraErr.Code)
+			if errors.As(err, &uiErr) {
+				debugf("user info error: %#v\n", uiErr)
+				w.WriteHeader(uiErr.code)
+				w.Write(uiErr.body)
+			} else {
+				debugf("user info error: %s\n", uiErr)
 				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte(err.Error()))
 			}
 
-			debug("got error getting userinfo: %s", err)
-			w.Write([]byte(err.Error()))
 			return
 		}
 
-		if userInfo == nil || userInfo.GetPayload() == nil {
-			debug("userinfo or it's payload is nil")
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("userInfo is nil"))
-			return
-		}
+		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, ui)
 
-		data := userInfo.GetPayload()
-		ctx := context.WithValue(r.Context(), ContextKeyUserInfo, UserInfo(*data))
-
-		debugf("got user info: %#v\n", userInfo.GetPayload())
+		debugf("got user info: %#v\n", ui)
 
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
