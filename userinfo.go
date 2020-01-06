@@ -52,7 +52,7 @@ func (ui userInfo) GetString(key string) string {
 	return ""
 }
 
-// GetInt gets an item from the user info map as a string
+// GetInt gets an item from the user info map as an int
 func (ui userInfo) GetInt(key string) int {
 	v, ok := ui[key]
 	if !ok {
@@ -61,20 +61,28 @@ func (ui userInfo) GetInt(key string) int {
 
 	if i, ok := v.(int); ok {
 		return i
+	} else if i64, ok := v.(int64); ok {
+		return int(i64)
+	} else if i32, ok := v.(int32); ok {
+		return int(i32)
 	}
 
 	return 0
 }
 
-// GetInt64 gets an item from the user info map as a string
+// GetInt64 gets an item from the user info map as an int64
 func (ui userInfo) GetInt64(key string) int64 {
 	v, ok := ui[key]
 	if !ok {
 		return 0
 	}
 
-	if i, ok := v.(int64); ok {
-		return i
+	if i, ok := v.(int); ok {
+		return int64(i)
+	} else if i64, ok := v.(int64); ok {
+		return i64
+	} else if i32, ok := v.(int32); ok {
+		return int64(i32)
 	}
 
 	return 0
