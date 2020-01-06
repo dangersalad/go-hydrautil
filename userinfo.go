@@ -30,6 +30,7 @@ type UserInfo interface {
 	GetString(key string) string
 	GetInt(key string) int
 	GetInt64(key string) int64
+	Get(key string) interface{}
 }
 
 type userInfo map[string]interface{}
@@ -37,6 +38,10 @@ type userInfo map[string]interface{}
 // Subject returns the subject
 func (ui userInfo) Subject() string {
 	return ui.GetString("sub")
+}
+
+func (ui userInfo) Get(key string) interface{} {
+	return ui[key]
 }
 
 // GetString gets an item from the user info map as a string
