@@ -2,11 +2,12 @@ package hydrautil
 
 import (
 	"context"
-	json "encoding/json"
+	"encoding/json"
 	"fmt"
 	"io"
-	ioutil "io/ioutil"
-	http "net/http"
+	"io/ioutil"
+	"net/http"
+	"strconv"
 )
 
 type userInfoError struct {
@@ -65,6 +66,10 @@ func (ui userInfo) GetInt(key string) int {
 		return int(i64)
 	} else if i32, ok := v.(int32); ok {
 		return int(i32)
+	} else if str, ok := v.(string); ok {
+		if i, err := strconv.Atoi(str); err != nil {
+			return i
+		}
 	}
 
 	return 0
@@ -83,6 +88,10 @@ func (ui userInfo) GetInt64(key string) int64 {
 		return i64
 	} else if i32, ok := v.(int32); ok {
 		return int64(i32)
+	} else if str, ok := v.(string); ok {
+		if i, err := strconv.ParseInt(str, 10, 64); err != nil {
+			return i
+		}
 	}
 
 	return 0
