@@ -65,19 +65,24 @@ func (ui userInfo) GetInt(key string) int {
 		return 0
 	}
 
-	if i, ok := v.(int); ok {
+	switch i := v.(type) {
+	case int:
 		return i
-	} else if i64, ok := v.(int64); ok {
-		return int(i64)
-	} else if i32, ok := v.(int32); ok {
-		return int(i32)
-	} else if str, ok := v.(string); ok {
-		if i, err := strconv.Atoi(str); err != nil {
-			return i
+	case int64:
+		return int(i)
+	case int32:
+		return int(i)
+	case string:
+		val, err := strconv.Atoi(i)
+		if err != nil {
+
+			return 0
 		}
+		return val
 	}
 
 	return 0
+
 }
 
 // GetInt64 gets an item from the user info map as an int64
@@ -87,16 +92,20 @@ func (ui userInfo) GetInt64(key string) int64 {
 		return 0
 	}
 
-	if i, ok := v.(int); ok {
+	switch i := v.(type) {
+	case int64:
+		return i
+	case int:
 		return int64(i)
-	} else if i64, ok := v.(int64); ok {
-		return i64
-	} else if i32, ok := v.(int32); ok {
-		return int64(i32)
-	} else if str, ok := v.(string); ok {
-		if i, err := strconv.ParseInt(str, 10, 64); err != nil {
-			return i
+	case int32:
+		return int64(i)
+	case string:
+		val, err := strconv.ParseInt(i, 10, 64)
+		if err != nil {
+
+			return 0
 		}
+		return val
 	}
 
 	return 0
