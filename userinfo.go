@@ -72,6 +72,10 @@ func (ui userInfo) GetInt(key string) int {
 		return int(i)
 	case int32:
 		return int(i)
+	case float64:
+		return int(i)
+	case float32:
+		return int(i)
 	case string:
 		val, err := strconv.Atoi(i)
 		if err != nil {
@@ -98,6 +102,10 @@ func (ui userInfo) GetInt64(key string) int64 {
 	case int:
 		return int64(i)
 	case int32:
+		return int64(i)
+	case float64:
+		return int64(i)
+	case float32:
 		return int64(i)
 	case string:
 		val, err := strconv.ParseInt(i, 10, 64)
